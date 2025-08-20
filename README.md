@@ -41,13 +41,119 @@ Kcube AI developed an **AI-powered recruitment solution** that transformed the c
 ---
 
 ## Tech Stack
-- **Azure AI Search** → Vector database & semantic search  
-- **Azure OpenAI** → Conversational AI & embeddings  
-- **React** → Web-based user interface  
-- **FastAPI** → Scalable backend services  
-- **PostgreSQL** → Secure structured data storage  
-- **OCR & Data Engineering Pipelines** → Preprocessing raw documents  
-- **GitHub Actions (CI/CD)** → Automated build & deployment  
+| Technology                | Purpose |
+|----------------------------|---------|
+| **Azure AI Search**        | Vector database & semantic search |
+| **Azure OpenAI**           | Conversational AI & embeddings |
+| **React**                  | Web-based user interface |
+| **FastAPI**                | Scalable backend services |
+| **PostgreSQL**             | Secure structured data storage |
+| **OCR & Data Engineering** | Document parsing & preprocessing |
+| **GitHub Actions (CI/CD)** | Automated deployment pipeline |
+
+---
+
+## Data Flow Diagram
+```mermaid
+flowchart TD
+  %% -------- DATA SOURCES --------
+  subgraph DS[Data Sources]
+    SQL[(SQL DBs)]
+    FILES[Raw Files]
+    APIS[Third Party APIs]
+  end
+
+  %% -------- INGESTION --------
+  subgraph ING[Ingestion and Orchestration]
+    CONNECT[Connectors]
+    SCHED[Scheduler and Workers]
+    INGEST[Ingestion Service]
+  end
+
+  %% -------- PREPROCESSING --------
+  subgraph ETL[Preprocessing and ETL]
+    OCR[OCR Pipeline]
+    PARSE[Document Parsers]
+    CLEAN[Normalization and Cleaning]
+    PII[PII Redaction]
+    META[Metadata Extraction]
+    CHUNK[Smart Chunking]
+  end
+
+  %% -------- EMBEDDINGS --------
+  subgraph IDX[Embedding and Indexing]
+    EMB[Embeddings]
+    HINDEX[Hybrid Indexer]
+  end
+
+  %% -------- STORAGE --------
+  subgraph STOR[Storage]
+    VDB[(Azure AI Search)]
+    PG[(PostgreSQL)]
+    BLOB[(Blob Storage)]
+  end
+
+  %% -------- SERVING --------
+  subgraph SRV[Serving and Retrieval]
+    UI[React Web UI]
+    API[FastAPI Backend]
+    AUTH[Auth and RBAC]
+    QP[Query Pipeline]
+    RET[Retriever]
+    RERANK[Reranking]
+    RAG[RAG Composer]
+    EXP[Export and Citations]
+  end
+
+  %% -------- OPERATIONS --------
+  subgraph OPS[Observability and Ops]
+    LOGS[Logs]
+    METRICS[Metrics]
+    GUARD[Guardrails]
+    CI[GitHub Actions]
+    MON[Monitoring]
+    AUDIT[Audit Trail]
+  end
+
+  %% -------- FLOWS --------
+  SQL --> CONNECT
+  FILES --> CONNECT
+  APIS --> CONNECT
+
+  CONNECT --> SCHED --> INGEST
+  INGEST --> OCR
+  INGEST --> PARSE
+  OCR --> PARSE
+  PARSE --> CLEAN --> PII --> META --> CHUNK
+
+  %% Persist processed artifacts
+  CHUNK --> BLOB
+  META --> PG
+
+  %% Embeddings and indexing
+  CHUNK --> EMB --> HINDEX --> VDB
+  PG --> HINDEX
+
+  %% Serving path
+  UI --> AUTH --> API
+  API --> QP --> RET --> RERANK --> RAG --> EXP --> UI
+
+  %% Retrieval sources
+  QP --> PG
+  RET --> VDB
+  RAG --> BLOB
+
+  %% Ops hooks
+  API --> LOGS
+  RET --> METRICS
+  RAG --> METRICS
+  AUTH --> AUDIT
+  INGEST --> AUDIT
+  CI --> INGEST
+  CI --> API
+  MON --> UI
+
+```
 
 ---
 
